@@ -1,0 +1,9 @@
+numpy
+matplotlib
+seaborn
+pandas
+torch
+torchvision
+Pillow
+albumentations
+opencv-python-headless
