@@ -19,3 +19,7 @@ The dataset is available at: https://datasets.simula.no/kvasir-seg/. In this pro
 are required to partition the dataset into 70% for training and 30% for validation when
 conducting their experiments, in order to ensure consistency and comparability across
 results.
+
+train.txt contains the name of the training images and their corresponding masks.
+
+val.txt contains the name of the validation images and their corresponding masks. 
