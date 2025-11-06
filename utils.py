@@ -5,15 +5,11 @@ import numpy as np
 
 # ============================================================================
 # METRICS AND LOSS FUNCTIONS
-# (Standardized on Task 2 logic)
 #
 # ============================================================================
 
-def dice_coefficient(pred, target, smooth=1e-6):
-    """
-    Dice Coefficient - measures overlap (0-1, higher is better)
-    Main metric for segmentation tasks
-    """
+def dice_coefficient(pred, target, smooth=1e-6): #Dice, measures overlap (0-1, higher is better)
+
     # Apply sigmoid to logits and threshold to get binary predictions
     pred = torch.sigmoid(pred)
     pred = (pred > 0.5).float()
@@ -29,10 +25,8 @@ def dice_coefficient(pred, target, smooth=1e-6):
     return dice.item()
 
 
-def iou_score(pred, target, smooth=1e-6):
-    """
-    IoU (Intersection over Union) - alternative overlap metric (0-1, higher is better)
-    """
+def iou_score(pred, target, smooth=1e-6): # Intersection over Union (0-1, higher is better)
+
     # Apply sigmoid to logits and threshold
     pred = torch.sigmoid(pred)
     pred = (pred > 0.5).float()
@@ -48,11 +42,8 @@ def iou_score(pred, target, smooth=1e-6):
     return iou.item()
 
 
-class DiceBCELoss(nn.Module):
-    """
-    Combined Dice + BCE Loss
-    Best for segmentation - handles class imbalance well
-    """
+class DiceBCELoss(nn.Module): # Combined Dice + BCE Loss. Best for segmentation
+
     def __init__(self, weight_dice=0.5, weight_bce=0.5):
         super().__init__()
         self.weight_dice = weight_dice
@@ -148,6 +139,12 @@ def validate_epoch(model, dataloader, criterion, device):
 #
 # ============================================================================
 
+# ============================================================================
+# EARLY STOPPING CLASS
+# (MODIFIED to store all best metrics to avoid redundant validation)
+#
+# ============================================================================
+
 class EarlyStopping:
     """Implements early stopping based on validation metric (e.g., Dice)."""
     
@@ -170,19 +167,25 @@ class EarlyStopping:
         self.best_score = None
         self.early_stop = False
         self.best_model_state = None
+        
+        # Add holders for all best metrics
+        self.best_loss = np.inf
+        self.best_iou = -np.inf
 
         if self.mode == 'min':
             self.val_metric_best = np.inf
         else:
             self.val_metric_best = -np.inf
 
-    def __call__(self, val_metric, model):
-        
+    def __call__(self, val_metric, val_loss, val_iou, model):
+        """
+        Updated call signature to accept all relevant metrics
+        """
         score = val_metric
 
         if self.best_score is None:
             self.best_score = score
-            self.save_checkpoint(val_metric, model)
+            self.save_checkpoint(val_metric, val_loss, val_iou, model)
         
         elif (self.mode == 'max' and score < self.best_score + self.delta) or \
              (self.mode == 'min' and score > self.best_score - self.delta):
@@ -195,19 +198,15 @@ class EarlyStopping:
         else:
             # Metric improved
             self.best_score = score
-            self.save_checkpoint(val_metric, model)
+            self.save_checkpoint(val_metric, val_loss, val_iou, model)
             self.counter = 0
 
-    def save_checkpoint(self, val_metric, model):
-        """Saves model when validation metric improves."""
-        # if self.verbose:
-        #     if self.mode == 'max':
-        #         print(f'SAVED best model (Dice: {val_metric:.4f})')
-        #     else:
-        #         print(f'SAVED best model (Loss: {val_metric:.4f})')
-        # The print statement for saving the best model has been removed as requested.
+    def save_checkpoint(self, val_metric, val_loss, val_iou, model):
+        """Saves model and all metrics when validation metric improves."""
         # Save a deep copy of the model's state_dict
         self.best_model_state = copy.deepcopy(model.state_dict())
         self.val_metric_best = val_metric
-        # Optional: save to disk
-        # torch.save(model.state_dict(), self.path)
+        
+        # Save the other associated metrics
+        self.best_loss = val_loss
+        self.best_iou = val_iou
