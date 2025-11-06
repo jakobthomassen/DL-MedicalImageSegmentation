@@ -68,10 +68,10 @@ class DiceBCELoss(nn.Module): # Combined Dice + BCE Loss. Best for segmentation
         
         # Combine losses
         return self.weight_bce * bce_loss + self.weight_dice * dice_loss
+    
 
 # ============================================================================
 # TRAINING AND VALIDATION LOOPS
-# (Modified from Task 2 to remove tqdm)
 #
 # ============================================================================
 
@@ -116,7 +116,6 @@ def validate_epoch(model, dataloader, criterion, device):
     total_iou = 0
     
     with torch.no_grad():  # Don't calculate gradients
-        # Iterate over dataloader without tqdm
         for images, masks in dataloader:
             images = images.to(device)
             masks = masks.to(device)
@@ -133,31 +132,13 @@ def validate_epoch(model, dataloader, criterion, device):
             total_dice / len(dataloader), 
             total_iou / len(dataloader))
 
-# ============================================================================
-# EARLY STOPPING CLASS
-# (Adapted from Task 1, modified to MAXIMIZE Dice score)
-#
-# ============================================================================
 
-# ============================================================================
-# EARLY STOPPING CLASS
-# (MODIFIED to store all best metrics to avoid redundant validation)
-#
-# ============================================================================
 
 class EarlyStopping:
-    """Implements early stopping based on validation metric (e.g., Dice)."""
     
     def __init__(self, patience=5, verbose=True, delta=0, mode='max', 
                  path='checkpoint.pth'):
-        """
-        Args:
-            patience (int): How long to wait after last time validation metric improved.
-            verbose (bool): If True, prints a message for each improvement.
-            delta (float): Minimum change in the monitored quantity to qualify as an improvement.
-            mode (str): 'min' for loss, 'max' for metrics like Dice/IoU.
-            path (str): Path for the checkpoint to be saved to.
-        """
+
         self.patience = patience
         self.verbose = verbose
         self.delta = delta
@@ -191,8 +172,7 @@ class EarlyStopping:
              (self.mode == 'min' and score > self.best_score - self.delta):
             # Metric did not improve
             self.counter += 1
-            if self.verbose:
-                print(f'  No improvement ({self.counter}/{self.patience})')
+
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
@@ -202,8 +182,7 @@ class EarlyStopping:
             self.counter = 0
 
     def save_checkpoint(self, val_metric, val_loss, val_iou, model):
-        """Saves model and all metrics when validation metric improves."""
-        # Save a deep copy of the model's state_dict
+        # Save a copy of the model's state_dict
         self.best_model_state = copy.deepcopy(model.state_dict())
         self.val_metric_best = val_metric
         
