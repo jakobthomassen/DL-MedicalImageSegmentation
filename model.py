@@ -1,3 +1,5 @@
+# Candidate 27 and Candidate 16
+
 import torch
 import torch.nn as nn
 import torchvision.transforms.functional as F
@@ -25,17 +27,17 @@ class UNet(nn.Module):
         self.downs = nn.ModuleList()
         self.ups = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.dropouts = nn.ModuleList()
+       #  self.dropouts = nn.ModuleList()
 
         # Encoder
         for feature in features:
             self.downs.append(DoubleConv(in_channels, feature))
-            self.dropouts.append(nn.Dropout2d(0.3))
+            # self.dropouts.append(nn.Dropout2d(0.3))
             in_channels = feature
 
         # Bottleneck
         self.bottleneck = DoubleConv(features[-1], features[-1] * 2)
-        self.bottleneck_dropout = nn.Dropout2d(0.5)
+        # self.bottleneck_dropout = nn.Dropout2d(0.5)
 
         # Decoder
         for feature in reversed(features):
@@ -50,14 +52,14 @@ class UNet(nn.Module):
     def forward(self, x):
         skip_connections = []
 
-        for down in self.downs:
+        for i, down in enumerate(self.downs):
             x = down(x)
-            x = self.dropouts[i](x)
+            # x = self.dropouts[i](x)
             skip_connections.append(x)
             x = self.pool(x)
 
         x = self.bottleneck(x)
-        x = self.bottleneck_dropout(x)
+        # x = self.bottleneck_dropout(x)
         skip_connections = skip_connections[::-1]
 
         for idx in range(0, len(self.ups), 2):

@@ -1,4 +1,4 @@
-https://github.com/jakobthomassen/DL-MedicalImageSegmentation
+# Candidate 27 and Candidate 16
 
 Task 1: Impact of image resolution on the final outcome.
 [Ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8700246/ ]

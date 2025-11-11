@@ -1,3 +1,5 @@
+# Candidate 27 and Candidate 16
+
 import torch
 import torch.nn as nn
 import copy
