@@ -1,3 +1,6 @@
+# utils.py
+# This script holds metrics, loss functions and training + validation loops. 
+# Storing them here and reusing them in different notebooks streamlines the process and keeps the methods uniform in both tasks.
 # Candidate 27 and Candidate 16
 
 import torch
@@ -5,12 +8,9 @@ import torch.nn as nn
 import copy
 import numpy as np
 
-# ============================================================================
 # METRICS AND LOSS FUNCTIONS
-#
-# ============================================================================
 
-def dice_coefficient(pred, target, smooth=1e-6): #Dice, measures overlap (0-1, higher is better)
+def dice_coefficient(pred, target, smooth=1e-6): # Dice, measures overlap (0-1, higher is better)
 
     # Apply sigmoid to logits and threshold to get binary predictions
     pred = torch.sigmoid(pred)
@@ -71,18 +71,13 @@ class DiceBCELoss(nn.Module): # Combined Dice + BCE Loss. Best for segmentation
         # Combine losses
         return self.weight_bce * bce_loss + self.weight_dice * dice_loss
     
-
-# ============================================================================
+    
 # TRAINING AND VALIDATION LOOPS
-#
-# ============================================================================
 
 def train_epoch(model, dataloader, criterion, optimizer, device):
     """Train for one epoch"""
     model.train()  # Set model to training mode
     total_loss = 0
-    total_dice = 0
-    total_iou = 0
     
     # Iterate over dataloader without tqdm
     for images, masks in dataloader:
@@ -101,14 +96,9 @@ def train_epoch(model, dataloader, criterion, optimizer, device):
         
         # Track metrics
         total_loss += loss.item()
-        total_dice += dice_coefficient(outputs, masks)
-        total_iou += iou_score(outputs, masks)
     
     # Return average metrics for the epoch
-    return (total_loss / len(dataloader), 
-            total_dice / len(dataloader), 
-            total_iou / len(dataloader))
-
+    return (total_loss / len(dataloader))
 
 def validate_epoch(model, dataloader, criterion, device):
     """Validate for one epoch"""
